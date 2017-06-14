@@ -10,6 +10,8 @@ namespace Formix.Inference.Core
     /// </summary>
     public class RuleInfo
     {
+        private string _path;
+
         /// <summary>
         /// RuleInfo constructor.
         /// </summary>
@@ -17,6 +19,7 @@ namespace Formix.Inference.Core
         /// <param name="method">The method that contains the rule's code.</param>
         public RuleInfo(object source, MethodInfo method)
         {
+            _path = null;
             Source = source;
             Method = method;
             FactNames = CreateFactPaths(source.GetType(), method);
@@ -24,9 +27,37 @@ namespace Formix.Inference.Core
         }
 
         /// <summary>
-        /// Gets the name of the rule.
+        /// The root path of the current rule. That value is set when the 
+        /// rule is added to a different place than the root of the engine.
         /// </summary>
-        public string Name { get; private set; }
+        public string Root { get; set; }
+
+        /// <summary>
+        /// Gets the path of the rule. It is always in the form {Root}/{Path}.
+        /// </summary>
+        public string Path
+        {
+            get
+            {
+                if (_path == null)
+                {
+                    _path = GetRulePath(Method);
+                }
+                return $"{Root}/{_path}".Trim('/');
+            }
+        }
+
+        /// <summary>
+        /// Gets the name of the rule. It is always in the form {Root}/{Path}/{Method Name}.
+        /// </summary>
+        public string Name
+        {
+            get
+            {
+                return $"{Root}/{Path}/{Method.Name}".TrimStart('/');
+            }
+        }
+
 
         /// <summary>
         /// Gets the rule method. That method is expected to return void or a 
@@ -39,11 +70,6 @@ namespace Formix.Inference.Core
         /// </summary>
         public object Source { get; }
 
-        /// <summary>
-        /// The root path of the current rule. That value is set when the 
-        /// rule is added to a different place than the root of the engine.
-        /// </summary>
-        public string Root { get; set; }
 
         /// <summary>
         /// Gets the array of all fact requested by the rule.
@@ -62,11 +88,14 @@ namespace Formix.Inference.Core
                 parameters[i] = engine[$"{Root}/{FactNames[i]}"];
             }
 
-            var nameValPairs = (object[])Method.Invoke(Source, parameters);
+            var facts = (Fact[])Method.Invoke(Source, parameters);
 
-            for (int i = 0; i < nameValPairs.Length; i += 2)
+            if (facts != null)
             {
-                //string path = 
+                foreach (var fact in facts)
+                {
+
+                }
             }
         }
 
@@ -74,12 +103,11 @@ namespace Formix.Inference.Core
         private string[] CreateFactPaths(Type type, MethodInfo method)
         {
             string modelName = GetModelName(type);
-            string rulePath = GetRulePath(method);
-            List<string> factPaths = CreateFactPathList(method, rulePath);
+            List<string> factPaths = CreateFactPathList(method);
             return factPaths.ToArray();
         }
 
-        private static List<string> CreateFactPathList(MethodInfo method, string rulePath)
+        private List<string> CreateFactPathList(MethodInfo method)
         {
             List<string> factPaths = new List<string>();
             var parameters = method.GetParameters();
@@ -91,7 +119,7 @@ namespace Formix.Inference.Core
                 {
                     if (!paramInfo.Path.StartsWith("/"))
                     {
-                        factPaths.Add($"{rulePath.TrimEnd('/')}/{paramInfo.Path}");
+                        factPaths.Add($"{Path}/{paramInfo.Path}");
                     }
                     else
                     {
@@ -110,10 +138,6 @@ namespace Formix.Inference.Core
             var ruleAttr = method.GetCustomAttribute<RuleAttribute>();
             if (ruleAttr != null)
             {
-                if (!string.IsNullOrWhiteSpace(ruleAttr.Name))
-                {
-                    Name = ruleAttr.Name;
-                }
                 rulePath = ruleAttr.Path;
             }
 

@@ -4,14 +4,30 @@ using System.Text;
 
 namespace Formix.Inference.Core
 {
+    /// <summary>
+    /// The InferenceEngine class is used to store a hierarchical set of 
+    /// facts and execute rules to maintain its states in a valid state.
+    /// </summary>
     public class InferenceEngine
     {
         private TreeNode _root;
+        private List<RuleInfo> _rules;
 
-
+        /// <summary>
+        /// Instanciates an InferenceEngine object.
+        /// </summary>
         public InferenceEngine()
         {
             _root = new TreeNode();
+            _rules = new List<RuleInfo>();
+        }
+
+        /// <summary>
+        /// List of active rules in this InferenceEngine instance.
+        /// </summary>
+        public List<RuleInfo> Rules
+        {
+            get { return _rules; }
         }
 
         /// <summary>

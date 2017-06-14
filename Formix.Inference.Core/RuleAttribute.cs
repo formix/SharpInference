@@ -42,10 +42,5 @@ namespace Formix.Inference.Core
                 }
             }
         }
-
-        /// <summary>
-        /// Get or set the name of the rule.
-        /// </summary>
-        public string Name { get; set; }
     }
 }
