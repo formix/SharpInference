@@ -27,12 +27,11 @@ namespace Formix.Inference.Core
         {
             string modelName = GetModelName(type);
             string rulePath = GetRulePath(method);
-            var root = $"{modelName}/{rulePath}";
-            List<string> factPaths = CreateFactPathList(method, root);
+            List<string> factPaths = CreateFactPathList(method, rulePath);
             return factPaths.ToArray();
         }
 
-        private static List<string> CreateFactPathList(MethodInfo method, string root)
+        private static List<string> CreateFactPathList(MethodInfo method, string rulePath)
         {
             List<string> factPaths = new List<string>();
             var parameters = method.GetParameters();
@@ -42,7 +41,14 @@ namespace Formix.Inference.Core
                 var paramInfo = parameter.GetCustomAttribute<FactAttribute>();
                 if (paramInfo != null)
                 {
-                    factPaths.Add($"{root}/{paramInfo.Path}");
+                    if (!paramInfo.Path.StartsWith("/"))
+                    {
+                        factPaths.Add($"{rulePath.TrimEnd('/')}/{paramInfo.Path}");
+                    }
+                    else
+                    {
+                        factPaths.Add(paramInfo.Path);
+                    }
                 }
             }
 
@@ -63,7 +69,7 @@ namespace Formix.Inference.Core
                 rulePath = ruleAttr.Path;
             }
 
-            return rulePath.Trim("/".ToCharArray());
+            return rulePath.Trim('/');
         }
 
         private static string GetModelName(Type type)
@@ -75,7 +81,7 @@ namespace Formix.Inference.Core
                 modelName = modelAttr.Name;
             }
 
-            return modelName.Trim("/".ToCharArray());
+            return modelName.Trim('/');
         }
     }
 }

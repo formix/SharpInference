@@ -18,7 +18,7 @@ namespace Formix.Inference.Core
         {
             _name = Name;
             _value = null;
-            Rules1 = new HashSet<RuleInfo>();
+            _rules = new HashSet<RuleInfo>();
             _parent = parent;
             _children = new Dictionary<string, TreeNode>();
         }
@@ -41,7 +41,7 @@ namespace Formix.Inference.Core
 
         public ISet<RuleInfo> Rules
         {
-            get { return Rules1; }
+            get { return _rules; }
         }
 
         public IDictionary<string, TreeNode> Children
@@ -49,13 +49,12 @@ namespace Formix.Inference.Core
             get { return _children; }
         }
 
-        public ISet<RuleInfo> Rules1 { get => _rules; set => _rules = value; }
 
         public object this[string path]
         {
             get
             {
-                var node = GetNode(path.Trim("/".ToCharArray()));
+                var node = GetNode(path.Trim('/'));
                 if (node != null)
                 {
                     return node.Value;
@@ -64,7 +63,7 @@ namespace Formix.Inference.Core
             }
             set
             {
-                var node = GetNode(path.Trim("/".ToCharArray()), true);
+                var node = GetNode(path.Trim('/'), true);
                 if (node != null)
                 {
                     node.Value = value;
