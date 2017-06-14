@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Formix.Inference.Core
 {
@@ -21,7 +17,8 @@ namespace Formix.Inference.Core
         /// <summary>
         /// Creates the attribute with the given fact name.
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="path">The path of the target fact. Start the path 
+        /// with '/' to define an absolute path.</param>
         public FactAttribute(string path)
         {
             Path = path;

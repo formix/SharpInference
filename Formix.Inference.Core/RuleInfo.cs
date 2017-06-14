@@ -1,25 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
-using System.Linq;
-using System.Reflection;
 
 
 namespace Formix.Inference.Core
 {
+    /// <summary>
+    /// Rule definition class.
+    /// </summary>
     public class RuleInfo
     {
-        public RuleInfo(object target, MethodInfo method)
+        /// <summary>
+        /// RuleInfo constructor.
+        /// </summary>
+        /// <param name="source">The source object that holds the rule's method.</param>
+        /// <param name="method">The method that contains the rule's code.</param>
+        public RuleInfo(object source, MethodInfo method)
         {
-            Target = target;
+            Source = source;
             Method = method;
-            FactPaths = CreateFactPaths(target.GetType(), method);
+            FactPaths = CreateFactPaths(source.GetType(), method);
         }
 
+        /// <summary>
+        /// Gets the name of the rule.
+        /// </summary>
         public string Name { get; private set; }
+
+        /// <summary>
+        /// Gets the rule method. That method is expected to return void or a 
+        /// list of name-value pairs.
+        /// </summary>
         public MethodInfo Method { get; }
-        public object Target { get; }
+
+        /// <summary>
+        /// Gets the source object that holds the rule's method.
+        /// </summary>
+        public object Source { get; }
+
+        /// <summary>
+        /// Gets the array of all fact paths requested by the rule.
+        /// </summary>
         public string[] FactPaths { get; }
 
 
