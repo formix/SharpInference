@@ -76,7 +76,7 @@ namespace Formix.Inference.Core
         /// Gets or sets the value of the target child node. The indexer 
         /// alloes accessing to any child TreeNode using a path notation 
         /// separated with slashes "/". Using the ".." goes up one node. 
-        /// Using the "." Refers to the current node.
+        /// Using the "." Refers to the current node. Mostly for test purpose.
         /// </summary>
         /// <param name="path">The path to the child node from the current 
         /// TreeNode.</param>
@@ -110,9 +110,9 @@ namespace Formix.Inference.Core
         /// <param name="rule">The rule to set to the child nodes.</param>
         public void AddRule(RuleInfo rule)
         {
-            foreach (var path in rule.FactPaths)
+            foreach (var path in rule.FactNames)
             {
-                var node = GetNode(path, true);
+                var node = GetNode($"{rule.Root}/{path}", true);
                 node.Rules.Add(rule);
             }
         }

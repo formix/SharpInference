@@ -37,7 +37,5 @@ namespace Formix.Inference.Core.Tests
             node["/target/star/../constellation"] = "Orion";
             Assert.AreEqual("Orion", node.Children["target"].Children["constellation"].Value);
         }
-
-
     }
 }

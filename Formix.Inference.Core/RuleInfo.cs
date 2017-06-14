@@ -19,7 +19,8 @@ namespace Formix.Inference.Core
         {
             Source = source;
             Method = method;
-            FactPaths = CreateFactPaths(source.GetType(), method);
+            FactNames = CreateFactPaths(source.GetType(), method);
+            Root = "";
         }
 
         /// <summary>
@@ -39,9 +40,35 @@ namespace Formix.Inference.Core
         public object Source { get; }
 
         /// <summary>
-        /// Gets the array of all fact paths requested by the rule.
+        /// The root path of the current rule. That value is set when the 
+        /// rule is added to a different place than the root of the engine.
         /// </summary>
-        public string[] FactPaths { get; }
+        public string Root { get; set; }
+
+        /// <summary>
+        /// Gets the array of all fact requested by the rule.
+        /// </summary>
+        public string[] FactNames { get; }
+
+        /// <summary>
+        /// Execute the current rule within the context of the given engine.
+        /// </summary>
+        /// <param name="engine">The engine executing the rule.</param>
+        public void Execute(InferenceEngine engine)
+        {
+            var parameters = new object[FactNames.Length];
+            for (int i = 0; i < FactNames.Length; i++)
+            {
+                parameters[i] = engine[$"{Root}/{FactNames[i]}"];
+            }
+
+            var nameValPairs = (object[])Method.Invoke(Source, parameters);
+
+            for (int i = 0; i < nameValPairs.Length; i += 2)
+            {
+                //string path = 
+            }
+        }
 
 
         private string[] CreateFactPaths(Type type, MethodInfo method)
