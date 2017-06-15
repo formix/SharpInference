@@ -10,8 +10,6 @@ namespace Formix.Inference.Core
     /// </summary>
     public class RuleInfo
     {
-        private string _path;
-
         /// <summary>
         /// RuleInfo constructor.
         /// </summary>
@@ -19,45 +17,20 @@ namespace Formix.Inference.Core
         /// <param name="method">The method that contains the rule's code.</param>
         public RuleInfo(object source, MethodInfo method)
         {
-            _path = null;
             Source = source;
             Method = method;
-            FactNames = CreateFactPaths(source.GetType(), method);
-            Root = "";
-        }
-
-        /// <summary>
-        /// The root path of the current rule. That value is set when the 
-        /// rule is added to a different place than the root of the engine.
-        /// </summary>
-        public string Root { get; set; }
-
-        /// <summary>
-        /// Gets the path of the rule. It is always in the form {Root}/{Path}.
-        /// </summary>
-        public string Path
-        {
-            get
-            {
-                if (_path == null)
-                {
-                    _path = GetRulePath(Method);
-                }
-                return $"{Root}/{_path}".Trim('/');
-            }
+            Facts = CreateFactPaths(source.GetType(), method);
         }
 
         /// <summary>
         /// Gets the name of the rule. It is always in the form {Root}/{Path}/{Method Name}.
         /// </summary>
-        public string Name
-        {
-            get
-            {
-                return $"{Root}/{Path}/{Method.Name}".TrimStart('/');
-            }
-        }
+        public string Name { get { return Method.Name; } }
 
+        /// <summary>
+        /// The name of the model of that rule.
+        /// </summary>
+        public string ModelName { get; set; }
 
         /// <summary>
         /// Gets the rule method. That method is expected to return void or a 
@@ -74,7 +47,7 @@ namespace Formix.Inference.Core
         /// <summary>
         /// Gets the array of all fact requested by the rule.
         /// </summary>
-        public string[] FactNames { get; }
+        public string[] Facts { get; }
 
         /// <summary>
         /// Execute the current rule within the context of the given engine.
@@ -82,10 +55,10 @@ namespace Formix.Inference.Core
         /// <param name="engine">The engine executing the rule.</param>
         public void Execute(InferenceEngine engine)
         {
-            var parameters = new object[FactNames.Length];
-            for (int i = 0; i < FactNames.Length; i++)
+            var parameters = new object[Facts.Length];
+            for (int i = 0; i < Facts.Length; i++)
             {
-                parameters[i] = engine[$"{Root}/{FactNames[i]}"];
+                parameters[i] = engine[Facts[i]];
             }
 
             var facts = (Fact[])Method.Invoke(Source, parameters);
@@ -94,7 +67,7 @@ namespace Formix.Inference.Core
             {
                 foreach (var fact in facts)
                 {
-
+                    engine[fact.Name] = fact.Value;
                 }
             }
         }
@@ -102,7 +75,7 @@ namespace Formix.Inference.Core
 
         private string[] CreateFactPaths(Type type, MethodInfo method)
         {
-            string modelName = GetModelName(type);
+            ModelName = GetModelName(type);
             List<string> factPaths = CreateFactPathList(method);
             return factPaths.ToArray();
         }
@@ -119,13 +92,14 @@ namespace Formix.Inference.Core
                 {
                     if (!paramInfo.Path.StartsWith("/"))
                     {
-                        factPaths.Add($"{Path}/{paramInfo.Path}");
+                        factPath = /* root and prefix */ paramInfo.Path;
                     }
                     else
                     {
-                        factPaths.Add(paramInfo.Path);
+                        factPath = paramInfo.Path;
                     }
                 }
+                factPaths.Add(factPath);
             }
 
             return factPaths;

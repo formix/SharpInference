@@ -110,9 +110,9 @@ namespace Formix.Inference.Core
         /// <param name="rule">The rule to set to the child nodes.</param>
         public void AddRule(RuleInfo rule)
         {
-            foreach (var path in rule.FactNames)
+            foreach (var path in rule.Facts)
             {
-                var node = GetNode($"{rule.Root}/{path}", true);
+                var node = GetNode(path, true);
                 node.Rules.Add(rule);
             }
         }

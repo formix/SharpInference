@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
+using System.Linq;
 
 namespace Formix.Inference.Core
 {
@@ -11,7 +13,8 @@ namespace Formix.Inference.Core
     public class InferenceEngine
     {
         private TreeNode _root;
-        private List<RuleInfo> _rules;
+        private Dictionary<string, RuleInfo> _rules;
+        private LinkedHashSet<RuleInfo> _agenda;
 
         /// <summary>
         /// Instanciates an InferenceEngine object.
@@ -19,13 +22,17 @@ namespace Formix.Inference.Core
         public InferenceEngine()
         {
             _root = new TreeNode();
-            _rules = new List<RuleInfo>();
+            _rules = new Dictionary<string, RuleInfo>();
+            _agenda = new LinkedHashSet<RuleInfo>();
+            MaxLoop = 100;
         }
+
+        public int MaxLoop { get; set; }
 
         /// <summary>
         /// List of active rules in this InferenceEngine instance.
         /// </summary>
-        public List<RuleInfo> Rules
+        public Dictionary<string, RuleInfo> Rules
         {
             get { return _rules; }
         }
@@ -56,15 +63,51 @@ namespace Formix.Inference.Core
                 var node = _root.GetNode(path.Trim('/'), true);
                 if (node != null)
                 {
-                    node.Value = value;
+                    if (!Equals(node.Value, value))
+                    {
+                        node.Value = value;
+                        _agenda.UnionWith(node.Rules);
+                    }
                 }
             }
         }
 
-
+        /// <summary>
+        /// Loads a model into the engine under the optional root.
+        /// </summary>
+        /// <param name="model">The model to load in the engine.</param>
+        /// <param name="root">Optional, defaults to empty string. The root 
+        /// where to put the model.</param>
         public void Load(object model, string root = "")
         {
+            var objectMethods = new HashSet<string>(
+                typeof(object).GetMethods().Select(m => m.Name));
+            var methods = model.GetType().GetMethods().Where(
+                m => !objectMethods.Contains(m.Name));
+            foreach (var method in methods)
+            {
+                var rule = new RuleInfo(model, method);
+                _rules.Add(rule.Name, rule);
+                _root.AddRule(rule);
+            }
+        }
 
+        /// <summary>
+        /// Executes the inference engine.
+        /// </summary>
+        public void Run()
+        {
+            int loop = 0;
+            while (_agenda.Count > 0 && loop < MaxLoop)
+            {
+                var agenda = _agenda;
+                _agenda = new LinkedHashSet<RuleInfo>();
+                foreach (var rule in agenda)
+                {
+                    rule.Execute(this);
+                }
+                loop++;
+            }
         }
     }
 }
