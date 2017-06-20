@@ -25,7 +25,7 @@ namespace Formix.Inference.Core.Tests
         {
             var engine = new InferenceEngine();
             engine.Load(new WeightModel());
-            engine["kilograms"] = 5;
+            engine["kilograms"] = 5.0;
             engine.Run();
             Assert.AreEqual(5 * 2.2, engine["pounds"]);
         }
